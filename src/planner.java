@@ -1,60 +1,95 @@
 import java.util.HashMap;
 import java.util.TreeMap;
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.Scanner;
 
 public class Planner {
     private static HashMap<String, TreeMap<String, String>> week = new HashMap<>();
+    private static final String[] DAYS = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
 
     public static void main(String[] args) {
-        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-        for (String day : days){
+        Scanner scanner = new Scanner(System.in);
+        for (String day : DAYS) {
             week.put(day, new TreeMap<>());
         }
 
-        addTask("Monday", "09:00", "Team Meeting");
-        addTask("Monday", "14:00", "Gym");
-        addTask("Wednesday", "10:00", "Doctor Appointment");
+        System.out.println("Welcome to Weekly Planner!");
+        System.out.println("---------------------------");
 
-        // Try to add a conflicting task
-        addTask("Monday", "09:00", "Coffee Break");
+        while (true) {
+            System.out.println("\n1. Add a task");
+            System.out.println("2. View schedule");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
 
-        // View the schedule
-        viewSchedule();
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    addTaskInteractive(scanner);
+                    break;
+                case "2":
+                    viewSchedule();
+                    break;
+                case "3":
+                    System.out.println("Goodbye!");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice, please try again.");
+            }
+        }
     }
 
-    public static void addTask(String day, String time, String task){
-        if (!week.containsKey(day)){
-            System.out.println("Invalid day: "+ day);
+    private static void addTaskInteractive(Scanner scanner) {
+        System.out.print("Enter the day (e.g., Monday): ");
+        String day = capitalize(scanner.nextLine().trim());
+
+        if (!week.containsKey(day)) {
+            System.out.println("Invalid day. Please enter a valid day of the week.");
             return;
         }
 
+        System.out.print("Enter the time (HH:MM): ");
+        String time = scanner.nextLine().trim();
+
+        System.out.print("Enter the task description: ");
+        String task = scanner.nextLine().trim();
+
         TreeMap<String, String> dailyTasks = week.get(day);
-        if (dailyTasks.containsKey(time)){
-            System.out.println("There is a conflict on time. " + day + " already has a task for the time "+ time);
-        }else{
-            dailyTasks.put(time,task);
-            System.out.println("Task added");
+
+        if (dailyTasks.containsKey(time)) {
+            System.out.println("Conflict! " + day + " already has a task at " + time + ".");
+            System.out.print("Do you want to replace it? (y/n): ");
+            String answer = scanner.nextLine().trim().toLowerCase();
+            if (!answer.equals("y")) {
+                System.out.println("Task not added.");
+                return;
+            }
         }
 
+        dailyTasks.put(time, task);
+        System.out.println("Task added successfully!");
     }
 
-    public static void viewSchedule() {
-        System.out.println("\nWeekly Schedule:");
+    private static void viewSchedule() {
+        System.out.println("\nWeekly Schedule:\n");
 
-        for(String day: week.keySet()){
+        // Print header
+        for (String day : DAYS) {
             System.out.printf("%-20s", day);
         }
         System.out.println();
 
+        // Collect all unique times
         TreeSet<String> allTimes = new TreeSet<>();
-        for (TreeMap<String, String> dailyTasks : week.values()){
+        for (TreeMap<String, String> dailyTasks : week.values()) {
             allTimes.addAll(dailyTasks.keySet());
         }
 
+        // Print each row
         for (String time : allTimes) {
-            for (String day : week.keySet()) {
+            for (String day : DAYS) {
                 String task = week.get(day).getOrDefault(time, "");
                 if (!task.isEmpty()) {
                     System.out.printf("%-20s", time + " " + task);
@@ -66,6 +101,8 @@ public class Planner {
         }
     }
 
-
-
+    private static String capitalize(String text) {
+        if (text.isEmpty()) return text;
+        return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+    }
 }
